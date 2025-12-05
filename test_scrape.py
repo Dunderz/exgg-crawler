@@ -4,38 +4,38 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 from dotenv import load_dotenv
 
+import time
+
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+CFN_ID = os.getenv("CFN_ID")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 def login_and_fetch():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context()
 
-        # --- Go to CFN login page ---
+        # --- Visit CFN page ---
         page = context.new_page()
-        page.goto("https://www.streetfighter.com/6/buckler/login")
 
-        # --- Fill login form ---
-        page.fill("input[name='username']", os.getenv("CFN_USERNAME"))
-        page.fill("input[name='password']", os.getenv("CFN_PASSWORD"))
-        page.click("button[type='submit']")
+        print("Opening CFN login page...")
+        page.goto("https://www.streetfighter.com/6/buckler/auth/loginep?redirect_url=/")
+        
+        print("\nLog in manually in the browser window.")
+        print("When you're fully logged in and can see your profile, come back here.")
+        input("Press ENTER here when done: ")
 
-        page.wait_for_load_state("networkidle")
-
-        # --- Go to your profile page ---
-        page.goto("https://www.streetfighter.com/6/buckler/profile")
-        page.wait_for_load_state("networkidle")
-
-        html = page.content()
+        # Save session to cfn_auth.json
+        context.storage_state(path="cfn_auth.json")
+        print("\nSaved session to cfn_auth.json")
 
         browser.close()
-        return html
 
 
 def save_to_supabase(html_data):
@@ -44,7 +44,7 @@ def save_to_supabase(html_data):
         "html": html_data
     }
 
-    res = supabase.table("crawler_test").insert(data).execute()
+    res = supabase.table("cfn_test").insert(data).execute()
     print("Saved to Supabase:", res)
 
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     print("[*] Logging into CFN and scraping your profile...")
     html = login_and_fetch()
 
-    print("[*] Uploading to Supabase...")
-    save_to_supabase(html)
+    # print("[*] Uploading to Supabase...")
+    # save_to_supabase(html)
 
     print("Done!")
