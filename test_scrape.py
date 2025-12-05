@@ -4,8 +4,6 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 from dotenv import load_dotenv
 
-import time
-
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -24,31 +22,23 @@ def login_and_fetch():
         page = context.new_page()
 
         page.goto("https://www.streetfighter.com/6/buckler/en")
-        print(page.url)
+        page.wait_for_load_state("networkidle")
+
+        print("Currently at:", page.url)
 
         page.get_by_role("link", name="Profile", exact=True).click()
-        
-        # # --- Visit CFN page ---
-        
+        page.wait_for_load_state("networkidle")
 
-        # print("Opening CFN login page...")
-        # page.goto("https://www.streetfighter.com/6/buckler/auth/loginep?redirect_url=/")
-        
-        # print("\nLog in manually in the browser window.")
-        # print("When you're fully logged in and can see your profile, come back here.")
-        # input("Press ENTER here when done: ")
+        html = page.content()
 
-        # # Save session to cfn_auth.json
-        # context.storage_state(path="cfn_auth.json")
-        # print("\nSaved session to cfn_auth.json")
-
-        # browser.close()
+        browser.close()
+        return html
 
 
 def save_to_supabase(html_data):
     data = {
-        "scraped_at": datetime.utcnow().isoformat(),
-        "html": html_data
+        "created_at": datetime.utcnow().isoformat(),
+        "data": html_data
     }
 
     res = supabase.table("cfn_test").insert(data).execute()
@@ -59,7 +49,7 @@ if __name__ == "__main__":
     print("[*] Logging into CFN and scraping your profile...")
     html = login_and_fetch()
 
-    # print("[*] Uploading to Supabase...")
-    # save_to_supabase(html)
+    print("[*] Uploading to Supabase...")
+    save_to_supabase(html)
 
     print("Done!")
