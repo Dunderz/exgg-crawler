@@ -19,23 +19,30 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 def login_and_fetch():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-
-        # --- Visit CFN page ---
+        context = browser.new_context(storage_state="cfn_auth.json")
+        
         page = context.new_page()
 
-        print("Opening CFN login page...")
-        page.goto("https://www.streetfighter.com/6/buckler/auth/loginep?redirect_url=/")
+        page.goto("https://www.streetfighter.com/6/buckler/en")
+        print(page.url)
+
+        page.get_by_role("link", name="Profile", exact=True).click()
         
-        print("\nLog in manually in the browser window.")
-        print("When you're fully logged in and can see your profile, come back here.")
-        input("Press ENTER here when done: ")
+        # # --- Visit CFN page ---
+        
 
-        # Save session to cfn_auth.json
-        context.storage_state(path="cfn_auth.json")
-        print("\nSaved session to cfn_auth.json")
+        # print("Opening CFN login page...")
+        # page.goto("https://www.streetfighter.com/6/buckler/auth/loginep?redirect_url=/")
+        
+        # print("\nLog in manually in the browser window.")
+        # print("When you're fully logged in and can see your profile, come back here.")
+        # input("Press ENTER here when done: ")
 
-        browser.close()
+        # # Save session to cfn_auth.json
+        # context.storage_state(path="cfn_auth.json")
+        # print("\nSaved session to cfn_auth.json")
+
+        # browser.close()
 
 
 def save_to_supabase(html_data):
