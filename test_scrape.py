@@ -17,9 +17,6 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def login_and_fetch():
     with sync_playwright() as p:
-        # browser = p.chromium.launch(headless=True)
-        # context = browser.new_context(storage_state="cfn_auth.json")
-
         # Launch stealth browser
         browser, context = launch_stealth_browser(p)
 
@@ -64,30 +61,38 @@ def login_and_fetch():
         ul = page.locator("ul[class^='ranking_ranking_list']")
         player_ul = ul.nth(1)
 
-        rows = player_ul.locator("li").all()
+        rows = player_ul.locator("> li").all()
+
+        players = []
 
         for row in rows:
-            name = row.locator("span[class^='ranking_name']").inner_text()
-            print(name)
+            player_name = row.locator("span[class^='ranking_name']").inner_text()
+
+            player_mr_text = row.locator("div[class^='ranking_time'] dd").inner_text()
+            player_mr = int(player_mr_text.split()[0])
+
+            player = {
+                "player_name": player_name,
+                "player_mr": player_mr,
+                "created_at": datetime.utcnow().isoformat()
+            }
+
+            players.append(player)
 
         browser.close()
+        return players
 
 
-def save_to_supabase(html_data):
-    data = {
-        "created_at": datetime.utcnow().isoformat(),
-        "data": html_data
-    }
-
-    res = supabase.table("cfn_test").insert(data).execute()
+def save_to_supabase(players):
+    res = supabase.table("cfn_test").insert(players).execute()
     print("Saved to Supabase:", res)
 
 
 if __name__ == "__main__":
-    print("[*] Logging into CFN and scraping your profile...")
-    login_and_fetch()
+    print("[*] Logging into CFN and scraping player data...")
+    players = login_and_fetch()
 
-    # print("[*] Uploading to Supabase...")
-    # save_to_supabase(html)
+    print("[*] Uploading to Supabase...")
+    save_to_supabase(players)
 
     print("Done!")
