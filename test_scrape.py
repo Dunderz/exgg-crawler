@@ -54,34 +54,42 @@ def login_and_fetch():
         
         page = context.new_page()
 
-        page.goto("https://www.streetfighter.com/6/buckler/ranking/master")
-        page.wait_for_load_state("networkidle")
-        print("Currently at:", page.url)
-
-        ul = page.locator("ul[class^='ranking_ranking_list']")
-        player_ul = ul.nth(1)
-
-        rows = player_ul.locator("> li").all()
-
         players = []
 
-        for row in rows:
-            player_name = row.locator("span[class^='ranking_name']").inner_text()
+        page_number = 1
 
-            player_mr_text = row.locator("div[class^='ranking_time'] dd").inner_text()
-            player_mr = int(player_mr_text.split()[0])
+        while page_number < 20:
 
-            player = {
-                "player_name": player_name,
-                "player_mr": player_mr,
-                "created_at": datetime.utcnow().isoformat()
-            }
+            url = f"https://www.streetfighter.com/6/buckler/ranking/master?page={page_number}&season_type=1"
+            page.goto(url)
+            page.wait_for_load_state("networkidle")
+            print("Currently at:", page.url)
 
-            players.append(player)
+            ul = page.locator("ul[class^='ranking_ranking_list']")
+            player_ul = ul.nth(1)
+
+            rows = player_ul.locator("> li").all()
+
+            for row in rows:
+                player_name = row.locator("span[class^='ranking_name']").inner_text()
+
+                player_mr_text = row.locator("div[class^='ranking_time'] dd").inner_text()
+                player_mr = int(player_mr_text.split()[0])
+
+                player = {
+                    "player_name": player_name,
+                    "player_mr": player_mr,
+                    "created_at": datetime.utcnow().isoformat()
+                }
+
+                players.append(player)
+
+            page_number += 1
+
 
         browser.close()
         return players
-
+    
 
 def save_to_supabase(players):
     res = supabase.table("cfn_test").insert(players).execute()
