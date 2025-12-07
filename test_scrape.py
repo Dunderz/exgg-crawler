@@ -76,7 +76,7 @@ def scrape_leaderboard_page(page, page_number: int):
 def paginate_leaderboard(page):
     page_number = 1
 
-    while page_number <= 20:
+    while True:
         players = scrape_leaderboard_page(page, page_number)
 
         if not players:
