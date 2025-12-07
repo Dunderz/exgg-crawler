@@ -10,8 +10,6 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
-CFN_ID = os.getenv("CFN_ID")
-
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
