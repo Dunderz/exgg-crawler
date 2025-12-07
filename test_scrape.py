@@ -38,6 +38,7 @@ def create_stealth_context(p):
     context.add_init_script("Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4] });")
     context.add_init_script("Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });")
 
+    return browser, context
 
 
 def scrape_leaderboard_page(page, page_number: int):
@@ -53,6 +54,8 @@ def scrape_leaderboard_page(page, page_number: int):
 
     rows = player_ul.locator("> li").all()
 
+    players = []
+
     for row in rows:
         player_name = row.locator("span[class^='ranking_name']").inner_text()
 
@@ -67,10 +70,12 @@ def scrape_leaderboard_page(page, page_number: int):
 
         players.append(player)
 
+    return players
+
+
 
 
 def paginate_leaderboard(page):
-    all_players = []
     page_number = 1
 
     while page_number <= 20:
@@ -79,11 +84,12 @@ def paginate_leaderboard(page):
         if not players:
             print("Reached end of leaderboard.")
             break
-
-        all_players.extend(players)
+        
+        print(f"[*] Uploading page {page_number} to Supabase...")
+        save_to_supabase(players)
+        
         page_number += 1
 
-    return all_players
 
 
 
@@ -94,21 +100,21 @@ def login_and_fetch():
         page = context.new_page()
 
         #Scrape ranked leaderboard
-        players = paginate_leaderboard(page)
+        paginate_leaderboard(page)
         browser.close()
-        return players
-    
+
+
+
 
 def save_to_supabase(players):
     res = supabase.table("cfn_test").insert(players).execute()
     print("Saved to Supabase:", res)
 
 
+
+
 if __name__ == "__main__":
     print("[*] Logging into CFN and scraping player data...")
     players = login_and_fetch()
-
-    print("[*] Uploading to Supabase...")
-    save_to_supabase(players)
 
     print("Done!")
