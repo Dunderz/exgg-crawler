@@ -60,6 +60,7 @@ def scrape_leaderboard_page(page, page_number: int):
         player = {
             "player_name": raw_player['fighter_banner_info']['personal_info']['fighter_id'],
             "player_mr": int(raw_player['rating']),
+            "player_id": raw_player['fighter_banner_info']['personal_info']['short_id'],
             "created_at": datetime.utcnow().isoformat()
         }
 
