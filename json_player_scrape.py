@@ -41,6 +41,7 @@ def create_stealth_context(p):
     return browser, context
 
 
+
 def scrape_leaderboard_page(page, page_number: int):
     build_id = fetch_build_id(BUCKLER_BASE)
     url = f"https://www.streetfighter.com/6/buckler/_next/data/{build_id}/en/ranking/master.json?page={page_number}&season_type=1"
@@ -103,8 +104,8 @@ def login_and_fetch():
 
 
 def save_to_supabase(players):
-    res = supabase.table("cfn_test").insert(players).execute()
-    print("Saved to Supabase:", res)
+    supabase.table("cfn_test").insert(players).execute()
+    # print("Saved to Supabase:", res)
 
 
 
