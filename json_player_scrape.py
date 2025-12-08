@@ -104,8 +104,7 @@ def login_and_fetch():
 
 
 def save_to_supabase(players):
-    supabase.table("cfn_test").insert(players).execute()
-    # print("Saved to Supabase:", res)
+    supabase.table("players").insert(players).execute()
 
 
 
