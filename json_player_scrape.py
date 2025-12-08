@@ -42,29 +42,24 @@ def create_stealth_context(p):
 
 
 def scrape_leaderboard_page(page, page_number: int):
-    url = f"https://www.streetfighter.com/6/buckler/ranking/master?page={page_number}&season_type=1"
+    build_id = fetch_build_id(BUCKLER_BASE)
+    url = f"https://www.streetfighter.com/6/buckler/_next/data/{build_id}/en/ranking/master.json?page={page_number}&season_type=1"
 
-    page.goto(url)
-    page.wait_for_load_state("networkidle")
+    response = page.request.get(url)
     
-    print("Currently at:", page.url)
-
-    ul = page.locator("ul[class^='ranking_ranking_list']")
-    player_ul = ul.nth(1)
-
-    rows = player_ul.locator("> li").all()
-
+    if response.status != 200:
+        raise RuntimeError(f"Bad status {response.status} for {url}")
+    
+    data = response.json()
+    raw_players = data['pageProps']['master_rating_ranking']['ranking_fighter_list']
+    
     players = []
 
-    for row in rows:
-        player_name = row.locator("span[class^='ranking_name']").inner_text()
-
-        player_mr_text = row.locator("div[class^='ranking_time'] dd").inner_text()
-        player_mr = int(player_mr_text.split()[0])
+    for raw_player in raw_players:
 
         player = {
-            "player_name": player_name,
-            "player_mr": player_mr,
+            "player_name": raw_player['fighter_banner_info']['personal_info']['fighter_id'],
+            "player_mr": int(raw_player['rating']),
             "created_at": datetime.utcnow().isoformat()
         }
 
@@ -78,7 +73,7 @@ def scrape_leaderboard_page(page, page_number: int):
 def paginate_leaderboard(page):
     page_number = 1
 
-    while True:
+    while page_number < 20:
         players = scrape_leaderboard_page(page, page_number)
 
         if not players:
@@ -101,7 +96,6 @@ def login_and_fetch():
 
         #Scrape ranked leaderboard
         paginate_leaderboard(page)
-        print("BUILD ID =", fetch_build_id(BUCKLER_BASE))
         browser.close()
 
 
