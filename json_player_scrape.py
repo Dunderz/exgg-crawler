@@ -57,11 +57,12 @@ def scrape_leaderboard_page(page, page_number: int):
     players = []
 
     for raw_player in raw_players:
-
+        personal_info = raw_player['fighter_banner_info']['personal_info']
+        
         player = {
-            "player_name": raw_player['fighter_banner_info']['personal_info']['fighter_id'],
+            "player_name": personal_info['fighter_id'],
             "player_mr": int(raw_player['rating']),
-            "player_id": raw_player['fighter_banner_info']['personal_info']['short_id'],
+            "player_id": personal_info['short_id'],
             "created_at": datetime.utcnow().isoformat()
         }
 
