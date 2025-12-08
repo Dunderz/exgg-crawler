@@ -4,11 +4,13 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 from dotenv import load_dotenv
 from stealth import launch_stealth_browser
+from build_id import fetch_build_id
 
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+BUCKLER_BASE = "https://www.streetfighter.com/6/buckler"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -99,6 +101,7 @@ def login_and_fetch():
 
         #Scrape ranked leaderboard
         paginate_leaderboard(page)
+        print("BUILD ID =", fetch_build_id(BUCKLER_BASE))
         browser.close()
 
 
