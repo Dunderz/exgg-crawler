@@ -45,7 +45,8 @@ def create_stealth_context(p):
 def scrape_leaderboard_page(page, page_number: int):
     build_id = fetch_build_id(BUCKLER_BASE)
     url = f"https://www.streetfighter.com/6/buckler/_next/data/{build_id}/en/ranking/master.json?page={page_number}&season_type=1"
-
+    # print(url)
+    
     response = page.request.get(url)
     
     if response.status != 200:
@@ -54,19 +55,26 @@ def scrape_leaderboard_page(page, page_number: int):
     data = response.json()
     raw_players = data['pageProps']['master_rating_ranking']['ranking_fighter_list']
     
+    seen = set()
     players = []
 
     for raw_player in raw_players:
         personal_info = raw_player['fighter_banner_info']['personal_info']
         
+        player_id = personal_info['short_id']
+        player_name = personal_info['fighter_id']
+        player_mr = raw_player['rating']
+        
         player = {
-            "player_name": personal_info['fighter_id'],
-            "player_mr": int(raw_player['rating']),
-            "player_id": personal_info['short_id'],
+            "player_name": player_name,
+            "player_mr": player_mr,
+            "player_id": player_id,
             "created_at": datetime.utcnow().isoformat()
         }
 
-        players.append(player)
+        if player_id not in seen:
+            seen.add(player_id)
+            players.append(player)
 
     return players
 
@@ -76,7 +84,7 @@ def scrape_leaderboard_page(page, page_number: int):
 def paginate_leaderboard(page):
     page_number = 1
 
-    while page_number < 20:
+    while page_number < 5:
         players = scrape_leaderboard_page(page, page_number)
 
         if not players:
@@ -87,6 +95,8 @@ def paginate_leaderboard(page):
         save_to_supabase(players)
         
         page_number += 1
+        
+    supabase.rpc("merge_players").execute()
 
 
 
@@ -105,7 +115,7 @@ def login_and_fetch():
 
 
 def save_to_supabase(players):
-    supabase.table("players").insert(players).execute()
+    supabase.rpc('insert_players', {'_players': players}).execute()
 
 
 
