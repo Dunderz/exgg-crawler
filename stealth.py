@@ -1,7 +1,7 @@
-from playwright.sync_api import Browser, BrowserContext
+from playwright.async_api import Browser, BrowserContext
 
-def launch_stealth_browser(p):
-    browser = p.chromium.launch(
+async def launch_stealth_browser(p):
+    browser = await p.chromium.launch(
         headless=True,
         args=[
             "--disable-blink-features=AutomationControlled",
@@ -13,7 +13,7 @@ def launch_stealth_browser(p):
         ]
     )
 
-    context = browser.new_context(
+    context = await browser.new_context(
         user_agent=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -25,21 +25,21 @@ def launch_stealth_browser(p):
     )
 
     # Remove webdriver property
-    context.add_init_script("""
+    await context.add_init_script("""
         Object.defineProperty(navigator, 'webdriver', {
             get: () => undefined
         });
     """)
 
     # Fake plugin support
-    context.add_init_script("""
+    await context.add_init_script("""
         Object.defineProperty(navigator, 'plugins', {
             get: () => [1, 2, 3, 4]
         });
     """)
 
     # Fake languages
-    context.add_init_script("""
+    await context.add_init_script("""
         Object.defineProperty(navigator, 'languages', {
             get: () => ['en-US', 'en']
         });
