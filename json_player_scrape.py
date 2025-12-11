@@ -82,6 +82,8 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
 
 async def paginate_leaderboard(page):
     build_id = fetch_build_id(BUCKLER_BASE)
+    semaphore = asyncio.Semaphore(5)
+    tasks = []
     page_number = 1
 
     while page_number < 5:
