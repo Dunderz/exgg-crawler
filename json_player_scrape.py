@@ -93,7 +93,7 @@ async def paginate_leaderboard(page):
     semaphore = asyncio.Semaphore(5)
     tasks = []
     
-    for page_number in range(1, 5):
+    for page_number in range(1, 50):
         tasks.append(asyncio.create_task(fetch_page_with_limit(page, page_number, build_id, semaphore)))
 
     results = await asyncio.gather(*tasks)
