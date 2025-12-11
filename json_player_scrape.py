@@ -80,18 +80,28 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
 
 
 
+async def fetch_page_with_limit(page, page_number: int, build_id: str, semaphore: asyncio.Semaphore):
+    async with semaphore:
+        players = await scrape_leaderboard_page(page, page_number, build_id)
+        return page_number, players
+    
+    
+    
+    
 async def paginate_leaderboard(page):
     build_id = fetch_build_id(BUCKLER_BASE)
     semaphore = asyncio.Semaphore(5)
     tasks = []
-    page_number = 1
+    
+    for page_number in range(1, 5):
+        tasks.append(asyncio.create_task(fetch_page_with_limit(page, page_number, build_id, semaphore)))
 
-    while page_number < 5:
-        players = await scrape_leaderboard_page(page, page_number, build_id)
-
+    results = await asyncio.gather(*tasks)
+    
+    for page_number, players in sorted(results, key=lambda x: x[0]):
         if not players:
-            print("Reached end of leaderboard.")
-            break
+            print(f"Reached end of leaderboard at page {page_number}.")
+            continue
         
         print(f"[*] Uploading page {page_number} to Supabase...")
         save_to_supabase(players)
