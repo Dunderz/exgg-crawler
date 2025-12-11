@@ -43,10 +43,8 @@ async def create_stealth_context(p):
 
 
 
-async def scrape_leaderboard_page(page, page_number: int):
-    build_id = fetch_build_id(BUCKLER_BASE)
+async def scrape_leaderboard_page(page, page_number: int, build_id: str):
     url = f"https://www.streetfighter.com/6/buckler/_next/data/{build_id}/en/ranking/master.json?page={page_number}&season_type=1"
-    # print(url)
     
     response = await page.request.get(url)
     
@@ -83,10 +81,11 @@ async def scrape_leaderboard_page(page, page_number: int):
 
 
 async def paginate_leaderboard(page):
+    build_id = fetch_build_id(BUCKLER_BASE)
     page_number = 1
 
     while page_number < 5:
-        players = await scrape_leaderboard_page(page, page_number)
+        players = await scrape_leaderboard_page(page, page_number, build_id)
 
         if not players:
             print("Reached end of leaderboard.")
