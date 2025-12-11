@@ -106,8 +106,6 @@ async def paginate_leaderboard(page):
         print(f"[*] Uploading page {page_number} to Supabase...")
         save_to_supabase(players)
         
-        page_number += 1
-        
     print("[*] Merging players...")
     supabase.rpc("merge_players").execute()
 
