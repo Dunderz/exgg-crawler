@@ -43,10 +43,10 @@ async def create_stealth_context(p):
 
 
 
-async def scrape_leaderboard_page(page, page_number: int, build_id: str):
+async def scrape_leaderboard_page(request, page_number: int, build_id: str):
     url = f"https://www.streetfighter.com/6/buckler/_next/data/{build_id}/en/ranking/master.json?page={page_number}&season_type=1"
     
-    response = await page.request.get(url)
+    response = await request.get(url)
     
     if response.status != 200:
         raise RuntimeError(f"Bad status {response.status} for {url}")
@@ -79,21 +79,21 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
 
 
 
-async def fetch_page_with_limit(page, page_number: int, build_id: str, semaphore: asyncio.Semaphore):
+async def fetch_page_with_limit(context, page_number: int, build_id: str, semaphore: asyncio.Semaphore):
     async with semaphore:
-        players = await scrape_leaderboard_page(page, page_number, build_id)
+        players = await scrape_leaderboard_page(context.request, page_number, build_id)
         return page_number, players
     
     
     
     
-async def paginate_leaderboard(page):
+async def paginate_leaderboard(context):
     build_id = fetch_build_id(BUCKLER_BASE)
     semaphore = asyncio.Semaphore(5)
     tasks = []
     
     for page_number in range(1, 2):
-        tasks.append(asyncio.create_task(fetch_page_with_limit(page, page_number, build_id, semaphore)))
+        tasks.append(asyncio.create_task(fetch_page_with_limit(context, page_number, build_id, semaphore)))
 
     results = await asyncio.gather(*tasks)
     
@@ -113,10 +113,9 @@ async def login_and_fetch():
     async with async_playwright() as p:
         
         browser, context = await create_stealth_context(p)
-        page = await context.new_page()
 
         #Scrape ranked leaderboard
-        await paginate_leaderboard(page)
+        await paginate_leaderboard(context)
         await browser.close()
 
 
