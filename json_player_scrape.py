@@ -95,7 +95,7 @@ async def paginate_leaderboard(page):
     semaphore = asyncio.Semaphore(5)
     tasks = []
     
-    for page_number in range(1, 10):
+    for page_number in range(1, 2):
         tasks.append(asyncio.create_task(fetch_page_with_limit(page, page_number, build_id, semaphore)))
 
     results = await asyncio.gather(*tasks)
@@ -126,7 +126,7 @@ async def login_and_fetch():
 
 
 def save_to_supabase(players):
-    supabase.table('players').insert(players).execute()
+    supabase.table('players').upsert(players, on_conflict="player_id,player_character").execute()
 
 
 
