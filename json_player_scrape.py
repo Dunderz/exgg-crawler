@@ -4,8 +4,8 @@ from supabase import create_client
 from playwright.async_api import async_playwright
 from datetime import datetime, UTC
 from dotenv import load_dotenv
-from stealth import launch_stealth_browser
 from build_id import fetch_build_id
+from stealth import create_stealth_context
 
 load_dotenv()
 
@@ -17,35 +17,10 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 
-async def create_stealth_context(p):
-    # Launch stealth browser
-    browser, _ = await launch_stealth_browser(p)
-
-    # Load your saved CFN login session (very important)
-    context = await browser.new_context(
-        storage_state="cfn_auth.json",
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/121.0.0.0 Safari/537.36"
-        ),
-        viewport={"width": 1280, "height": 800},
-        locale="en-US",
-        timezone_id="America/New_York",
-    )
-
-    # stealth patches
-    await context.add_init_script("Object.defineProperty(navigator, 'webdriver', { get: () => undefined });")
-    await context.add_init_script("Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4] });")
-    await context.add_init_script("Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });")
-
-    return browser, context
-
-
-
 async def scrape_leaderboard_page(request, page_number: int, build_id: str):
     url = f"https://www.streetfighter.com/6/buckler/_next/data/{build_id}/en/ranking/master.json?page={page_number}&season_type=1"
     
+    print(f"Fetching page {page_number}...")
     response = await request.get(url)
     
     if response.status != 200:
@@ -89,10 +64,10 @@ async def fetch_page_with_limit(context, page_number: int, build_id: str, semaph
     
 async def paginate_leaderboard(context):
     build_id = fetch_build_id(BUCKLER_BASE)
-    semaphore = asyncio.Semaphore(5)
+    semaphore = asyncio.Semaphore(10)
     tasks = []
     
-    for page_number in range(1, 2):
+    for page_number in range(1, 50):
         tasks.append(asyncio.create_task(fetch_page_with_limit(context, page_number, build_id, semaphore)))
 
     results = await asyncio.gather(*tasks)
