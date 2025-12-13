@@ -71,8 +71,6 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
             "player_character": player_character,
             "created_at": datetime.utcnow().isoformat()
         }
-        
-        print(f"{player_name}:{player_character}")
 
         players.append(player)
 
