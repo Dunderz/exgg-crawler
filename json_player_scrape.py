@@ -2,7 +2,7 @@ import os
 import asyncio
 from supabase import create_client
 from playwright.async_api import async_playwright
-from datetime import datetime
+from datetime import datetime, UTC
 from dotenv import load_dotenv
 from stealth import launch_stealth_browser
 from build_id import fetch_build_id
@@ -69,7 +69,7 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
             "player_mr": player_mr,
             "player_id": player_id,
             "player_character": player_character,
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(UTC).isoformat()
         }
 
         players.append(player)
