@@ -54,7 +54,6 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
     data = await response.json()
     raw_players = data['pageProps']['master_rating_ranking']['ranking_fighter_list']
     
-    seen = set()
     players = []
 
     for raw_player in raw_players:
@@ -72,10 +71,10 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
             "player_character": player_character,
             "created_at": datetime.utcnow().isoformat()
         }
+        
+        print(f"{player_name}:{player_character}")
 
-        if player_id not in seen:
-            seen.add(player_id)
-            players.append(player)
+        players.append(player)
 
     return players
 
