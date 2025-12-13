@@ -63,11 +63,13 @@ async def scrape_leaderboard_page(page, page_number: int, build_id: str):
         player_id = personal_info['short_id']
         player_name = personal_info['fighter_id']
         player_mr = raw_player['rating']
+        player_character = raw_player['character_name']
         
         player = {
             "player_name": player_name,
             "player_mr": player_mr,
             "player_id": player_id,
+            "player_character": player_character,
             "created_at": datetime.utcnow().isoformat()
         }
 
